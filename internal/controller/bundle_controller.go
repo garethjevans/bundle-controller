@@ -37,6 +37,8 @@ import (
 //+kubebuilder:rbac:groups=source.garethjevans.org,resources=bundles/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=source.garethjevans.org,resources=bundles/finalizers,verbs=update
 
+//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=helmrepositories;gitrepositories;ocirepositories,verbs=get;list;watch
+
 func NewBundleReconciler(c reconcilers.Config) *reconcilers.ResourceReconciler[*v1alpha1.Bundle] {
 	return &reconcilers.ResourceReconciler[*v1alpha1.Bundle]{
 		Name: "Bundle",
@@ -90,7 +92,14 @@ func NewMixer(c reconcilers.Config) reconcilers.SubReconciler[*v1alpha1.Bundle] 
 					logrus.Infof("got artifact %+v", artifact)
 
 					// download the bundle and copy from/to path
-					err = DownloadFile(filepath.Join(tempDir, fmt.Sprintf("%s.tar.gz", source.Ref.Name)), artifact.URL)
+					tarGzLocation := filepath.Join(tempDir, fmt.Sprintf("%s.tar.gz", source.Ref.Name))
+					err = DownloadFile(tarGzLocation, artifact.URL)
+					if err != nil {
+						return err
+					}
+
+					tarGzExtractedLocation := filepath.Join(tempDir, fmt.Sprintf("%s-extracted", source.Ref.Name))
+					err = ExtractTarGz(tarGzLocation, tarGzExtractedLocation)
 					if err != nil {
 						return err
 					}
@@ -120,7 +129,7 @@ var _ Artifacter = (*apiv1beta2.OCIRepository)(nil)
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
 func DownloadFile(filepath string, url string) error {
-	logrus.Infof("Downloading %s", url)
+	logrus.Infof("Downloading %s to %s", url, filepath)
 
 	// Get the data
 	resp, err := http.Get(url)
@@ -167,11 +176,11 @@ func ExtractTarGz(tarGzPath string, dir string) error {
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if err := os.Mkdir(header.Name, 0755); err != nil {
+			if err := os.Mkdir(filepath.Join(dir, header.Name), 0755); err != nil {
 				return err
 			}
 		case tar.TypeReg:
-			outFile, err := os.Create(header.Name)
+			outFile, err := os.Create(filepath.Join(dir, header.Name))
 			if err != nil {
 				return err
 			}
