@@ -5,7 +5,7 @@ go 1.20
 require (
 	dies.dev v0.9.0
 	github.com/fluxcd/source-controller/api v0.36.1
-	github.com/go-logr/logr v1.2.4
+	github.com/go-logr/logr v1.3.0
 	github.com/onsi/ginkgo/v2 v2.13.0
 	github.com/onsi/gomega v1.27.10
 	github.com/sirupsen/logrus v1.9.3
