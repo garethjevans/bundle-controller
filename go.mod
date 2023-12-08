@@ -6,7 +6,7 @@ require (
 	dies.dev v0.9.0
 	github.com/fluxcd/source-controller/api v0.36.1
 	github.com/go-logr/logr v1.3.0
-	github.com/onsi/ginkgo/v2 v2.13.1
+	github.com/onsi/ginkgo/v2 v2.13.2
 	github.com/onsi/gomega v1.29.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/vmware-labs/reconciler-runtime v0.14.0
